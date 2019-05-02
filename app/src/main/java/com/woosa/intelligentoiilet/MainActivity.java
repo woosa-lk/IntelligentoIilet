@@ -24,7 +24,11 @@ public class MainActivity extends AppCompatActivity implements IGetMessageCallBa
         Intent intent = new Intent(this, MQTTService.class);
 
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-        text.setText(R.string.click_text);
+        text.setText(R.string.text);
+
+        Intent intent_list=new Intent();
+        intent.setClass(MainActivity.this, MyAdapterActivity.class);
+        startActivity(intent);
 
     }
 
