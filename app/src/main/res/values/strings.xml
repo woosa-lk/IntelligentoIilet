@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">智能洗手间</string>
+    <string name="next">next</string>
+    <string name="click_text">you are clicked.</string>
+</resources>
