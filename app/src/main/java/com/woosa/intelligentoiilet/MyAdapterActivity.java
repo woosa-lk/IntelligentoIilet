@@ -1,9 +1,13 @@
 package com.woosa.intelligentoiilet;
 
 import android.app.ListActivity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -18,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MyAdapterActivity extends ListActivity {
+public class MyAdapterActivity extends ListActivity{
     private List<Map<String, Object>> list;
     MyAdapter adapter;
 
@@ -43,71 +47,25 @@ public class MyAdapterActivity extends ListActivity {
 
         //List中存放的Map对象,由多个<键,值>对构成--一个Map对象对应ListView中的一行
         Map map;
-
-        map=new HashMap<String,Object>();
-        map.put("title", "1F");
-        map.put("info", "食草动物,家畜");
-        map.put("img", R.drawable.toilet);
-        list.add(map);
-
-        map=new HashMap<String,Object>();
-        map.put("title", "2F");
-        map.put("info", "鸟类,开屏很好看");
-        map.put("img", R.drawable.toilet);
-        list.add(map);
-
-        map=new HashMap<String,Object>();
-        map.put("title", "3F");
-        map.put("info", "珍稀,国宝");
-        map.put("img", R.drawable.toilet);
-        list.add(map);
-
-        map=new HashMap<String,Object>();
-        map.put("title", "4F");
-        map.put("info", "爬行类,已灭绝");
-        map.put("img", R.drawable.toilet);
-        list.add(map);
-
-        map=new HashMap<String,Object>();
-        map.put("title", "5F");
-        map.put("info", "神话中的动物");
-        map.put("img", R.drawable.toilet);
-        list.add(map);
-
-        map=new HashMap<String,Object>();
-        map.put("title", "6F");
-        map.put("info", "生活在极寒之地");
-        map.put("img", R.drawable.toilet);
-        list.add(map);
-
-        //只要漏出一丁点,就要调用getView(...)显示该行
-        map=new HashMap<String,Object>();
-        map.put("title", "8F");
-        map.put("info", "食草动物,家畜-2");
-        map.put("img", R.drawable.toilet);
-        list.add(map);
-
-        map=new HashMap<String,Object>();
-        map.put("title", "9F");
-        map.put("info", "鸟类,开屏很好看-2");
-        map.put("img", R.drawable.toilet);
-        list.add(map);
-
-        map=new HashMap<String,Object>();
-        map.put("title", "10F");
-        map.put("info", "鸟类,开屏很好看-2");
-        map.put("img", R.drawable.toilet);
-        list.add(map);
-        map=new HashMap<String,Object>();
-        map.put("title", "11F");
-        map.put("info", "鸟类,开屏很好看-2");
-        map.put("img", R.drawable.toilet);
-        list.add(map);
-        map=new HashMap<String,Object>();
-        map.put("title", "12F");
-        map.put("info", "鸟类,开屏很好看-2");
-        map.put("img", R.drawable.toilet);
-        list.add(map);
+        int floor_num;
+        int floor_max_num = 22;
+        for (floor_num = 1; floor_num <= floor_max_num; floor_num++) {
+            String floor = floor_num + "F";
+            map = new HashMap<String,Object>();
+            map.put("title", floor);
+            map.put("man", "男");
+            map.put("woman", "女");
+            map.put("occupy", "占用数");
+            map.put("idle", "空闲数");
+            map.put("occupy_man", "0");
+            map.put("idle_man", "0");
+            map.put("occupy_woman", "0");
+            map.put("idle_woman", "0");
+            map.put("img", R.drawable.toilet);
+            map.put("img_man_status", R.drawable.busy);
+            map.put("img_woman_status", R.drawable.busy);
+            list.add(map);
+        }
 
         return list;
     }
@@ -146,11 +104,19 @@ public class MyAdapterActivity extends ListActivity {
         //使用ViewHolder可以减少findViewById()的使用频率,方便数据访问
         public final class ViewHolder{
             public ImageView img;
+            public ImageView img_man_status;
+            public ImageView img_woman_status;
             public TextView title;
-            public TextView info;
-            public Button viewBtn;
+            public TextView man;
+            public TextView woman;
+            public TextView occupy;
+            public TextView idle;
+            public TextView occupy_man;
+            public TextView idle_man;
+            public TextView occupy_woman;
+            public TextView idle_woman;
+            public Button viewBtn_check;
         }
-
 
         //获取指定的一行所对应的View对象--不存在的话则创建之
         // position--当前要显示的数据的位置(行号)
@@ -170,12 +136,21 @@ public class MyAdapterActivity extends ListActivity {
                 holder=new ViewHolder();
 
                 //实例化ListView的一行, root参数为空说明此View的父控件默认为为上层的ListView
-                convertView = mInflater.inflate(R.layout.activity_main, null);
+                convertView = mInflater.inflate(R.layout.activity_adapter, null);
                 //获取内部的各个控件对象, 保存到容器对象中, 以后直接取来用即可--每个子控件对象只用一次findViewById()
-                holder.img = (ImageView)convertView.findViewById(R.id.img);
-                holder.title = (TextView)convertView.findViewById(R.id.title);
-                holder.info = (TextView)convertView.findViewById(R.id.info);
-                holder.viewBtn = (Button)convertView.findViewById(R.id.view_btn);
+                holder.img = convertView.findViewById(R.id.img);
+                holder.img_man_status = convertView.findViewById(R.id.img_man_status);
+                holder.img_woman_status = convertView.findViewById(R.id.img_woman_status);
+                holder.title = convertView.findViewById(R.id.title);
+                holder.man = convertView.findViewById(R.id.man);
+                holder.woman = convertView.findViewById(R.id.woman);
+                holder.occupy = convertView.findViewById(R.id.occupy);
+                holder.idle = convertView.findViewById(R.id.idle);
+                holder.occupy_man = convertView.findViewById(R.id.occupy_man);
+                holder.idle_man = convertView.findViewById(R.id.idle_man);
+                holder.occupy_woman = convertView.findViewById(R.id.occupy_woman);
+                holder.idle_woman = convertView.findViewById(R.id.idle_woman);
+                holder.viewBtn_check = convertView.findViewById(R.id.view_btn_check);
 
                 //设置容器对象为ListView当前行的Tag--建立容器类对象与ListView当前行的联系
                 convertView.setTag(holder);
@@ -186,13 +161,22 @@ public class MyAdapterActivity extends ListActivity {
 
             //设置该行内的控件对象对应的属性，Adapter的作用（List<--->ListView）--- 如果不用ViewHolder则需要频繁使用findViewByID
             holder.img.setBackgroundResource((Integer)list.get(position).get("img"));
+            holder.img_man_status.setBackgroundResource((Integer)list.get(position).get("img_man_status"));
+            holder.img_woman_status.setBackgroundResource((Integer)list.get(position).get("img_woman_status"));
             holder.title.setText((String)list.get(position).get("title"));
-            holder.info.setText((String)list.get(position).get("info"));
+            holder.man.setText((String)list.get(position).get("man"));
+            holder.woman.setText((String)list.get(position).get("woman"));
+            holder.occupy.setText((String)list.get(position).get("occupy"));
+            holder.idle.setText((String)list.get(position).get("idle"));
+            holder.occupy_man.setText((String)list.get(position).get("occupy_man"));
+            holder.idle_man.setText((String)list.get(position).get("idle_man"));
+            holder.occupy_woman.setText((String)list.get(position).get("occupy_woman"));
+            holder.idle_woman.setText((String)list.get(position).get("idle_woman"));
 
             //绑定该行中的Button对象的监听器
             //创建监听器对象时, 用参数传递当前的行号
             //每行中的Button建一个监听器对象,不同对象的position值不同
-            holder.viewBtn.setOnClickListener(new viewButtonClickListener(position)) ;
+            holder.viewBtn_check.setOnClickListener(new viewButtonClickListener(position));
 
             return convertView;//返回当前行对应的View对象
         }
@@ -202,13 +186,13 @@ public class MyAdapterActivity extends ListActivity {
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
-        String s=list.get(position).get("info").toString(); //获取该行的Map对象的指定属性的数据内容
+        String s=list.get(position).get("title").toString(); //获取该行的Map对象的指定属性的数据内容
         Toast.makeText(MyAdapterActivity.this, s, Toast.LENGTH_SHORT).show();
     }
 
     //使用内部类实现ListView的每行中按钮的监听函数
     //该监听器类会为ListView的每一行提供一个监听器对象,用来监听该行中按钮的点击事件
-    class viewButtonClickListener  implements View.OnClickListener {
+    class viewButtonClickListener implements View.OnClickListener {
         //记录按钮所在的行号
         int position;
 
@@ -220,9 +204,12 @@ public class MyAdapterActivity extends ListActivity {
         @Override
         public void onClick(View v) {
             //从数据源data中删除数据
-            list.remove(list.get(position));
+            //list.remove(list.get(position));
             //通知适配器更新UI
-            adapter.notifyDataSetChanged();
+            Intent intent_list=new Intent();
+            intent_list.setClass(MyAdapterActivity.this, addDeviceActivity.class);
+            startActivity(intent_list);
+            //adapter.notifyDataSetChanged();
         }
     }
 }

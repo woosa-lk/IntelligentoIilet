@@ -29,11 +29,11 @@ public class MQTTService extends Service {
     private static MqttAndroidClient client;
     private MqttConnectOptions conOpt;
 
-    private String host = "tcp://192.168.1.10:1883";
+    private String host = "tcp://120.79.44.99:1883";
     private String userName = "admin";
     private String passWord = "public";
     private static String myTopic = "device";
-    private String clientId = "mqtt test";
+    private String clientId = "mqtttest";
     private IGetMessageCallBack IGetMessageCallBack;
 
     @Override
@@ -97,7 +97,6 @@ public class MQTTService extends Service {
                 e.printStackTrace();
             }
         }
-
     }
 
     // MQTT是否连接成功
@@ -198,6 +197,4 @@ public class MQTTService extends Service {
         notificationManager.notify(0, notification);
 
     }
-
-
 }
