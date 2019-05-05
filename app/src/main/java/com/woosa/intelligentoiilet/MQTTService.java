@@ -10,6 +10,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.Parcel;
+import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -41,6 +43,19 @@ public class MQTTService extends Service {
         super.onCreate();
         Log.e(getClass().getName(), "onCreate");
         init();
+    }
+
+    public void publish(String msg){
+        String topic = "sql";
+        Integer qos = 0;
+        Boolean retained = false;
+        try {
+            if (client != null){
+                client.publish(topic, msg.getBytes(), qos.intValue(), retained.booleanValue());
+            }
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
     }
 
     private void init() {
@@ -177,24 +192,15 @@ public class MQTTService extends Service {
         public MQTTService getService(){
             return MQTTService.this;
         }
-    }
 
-    public  void toCreateNotification(String message){
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 1, new Intent(this,MQTTService.class), PendingIntent.FLAG_UPDATE_CURRENT);
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);//3、创建一个通知，属性太多，使用构造器模式
+        @Override
+        protected boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
+            //Activity里获取数据
+            publish(data.readString());
+            //reply.writeString("data");
+            //reply.writeInt(1990);
 
-        Notification notification = builder
-                .setTicker("测试标题")
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("")
-                .setContentText(message)
-                .setContentInfo("")
-                .setContentIntent(pendingIntent)//点击后才触发的意图，“挂起的”意图
-                .setAutoCancel(true)        //设置点击之后notification消失
-                .build();
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        startForeground(0, notification);
-        notificationManager.notify(0, notification);
-
+            return super.onTransact(code, data, reply, flags);
+        }
     }
 }
