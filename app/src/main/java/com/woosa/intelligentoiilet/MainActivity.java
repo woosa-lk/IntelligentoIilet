@@ -17,19 +17,26 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements IGetMessageCallBack, viewAdapter.Callback {
+public class MainActivity extends AppCompatActivity implements IGetMessageCallBack {
     private MyServiceConnection serviceConnection;
     private IBinder binder;
-    private Button btButton;
+    private final static int REQUEST_CODE = 101;
 
     private List<myBean> myBeanList = new ArrayList<>();
+    private viewAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,8 +46,68 @@ public class MainActivity extends AppCompatActivity implements IGetMessageCallBa
         //mqtt service
         serviceConnection = new MyServiceConnection();
         serviceConnection.setIGetMessageCallBack(MainActivity.this);
-        Intent intent = new Intent(this, MQTTService.class);
+        final Intent intent = new Intent(this, MQTTService.class);
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+
+        ListView listView = findViewById(R.id.listview);
+        viewAdapter adapter = new viewAdapter(MainActivity.this,R.layout.view_adapter, myBeanList);
+        listView.setAdapter(adapter);
+
+        get_system_init_data();
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent_list=new Intent();
+                intent_list.setClass(MainActivity.this, BindDevActivity.class);
+                intent_list.putExtra("dev_id", myBeanList.get(position).getText());
+                intent_list.putExtra("pos_id", position);
+                startActivityForResult(intent_list, REQUEST_CODE);
+            }
+        });
+    }
+
+    private void get_system_init_data()
+    {
+        Parcel data=Parcel.obtain();
+        data.writeString("CMD_GET_SYS_INIT_DATA");
+        Parcel reply=Parcel.obtain();
+        try {
+            binder.transact(IBinder.LAST_CALL_TRANSACTION, data, reply, 0);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // 当otherActivity中返回数据的时候，会响应此方法
+        // requestCode和resultCode必须与请求startActivityForResult()和返回setResult()的时候传入的值一致。
+        if (requestCode == REQUEST_CODE && resultCode == BindDevActivity.RESULT_CODE) {
+            Bundle bundle=data.getExtras();
+            String strDevID = bundle.getString("dev_id");
+            String strDevFloor = bundle.getString("dev_floor");
+            String strDevSex = bundle.getString("dev_sex");
+            int pos_id = bundle.getInt("pos_id");
+            Log.i("onActivityResult: ",strDevID);
+            Log.i("onActivityResult: ",strDevFloor);
+            Log.i("onActivityResult: ",strDevSex);
+
+            myBeanList.remove(pos_id);
+            adapter.notifyDataSetChanged();
+
+            Parcel data_bind=Parcel.obtain();
+            data_bind.writeString("CMD_SET_BIND_DEV");
+            data_bind.writeString(strDevID);
+            data_bind.writeString(strDevFloor);
+            data_bind.writeString(strDevSex);
+            Parcel reply=Parcel.obtain();
+            try {
+                binder.transact(IBinder.LAST_CALL_TRANSACTION, data_bind, reply, 0);
+            } catch (RemoteException e) {
+                //TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -49,7 +116,6 @@ public class MainActivity extends AppCompatActivity implements IGetMessageCallBa
         super.onDestroy();
     }
 
-    //
     private class MyServiceConnection implements ServiceConnection {
         private MQTTService mqttService;
         private IGetMessageCallBack IGetMessageCallBack;
@@ -73,12 +139,23 @@ public class MainActivity extends AppCompatActivity implements IGetMessageCallBa
 
     //mqtt service
     @Override
-    public void setMessage(String message) {
-        ListView listView = findViewById(R.id.listview);
-        myBean bean1 = new myBean(message,R.mipmap.ic_launcher);
-        myBeanList.add(bean1);
-        viewAdapter adapter = new viewAdapter(MainActivity.this,R.layout.view_adapter,myBeanList, this);
-        listView.setAdapter(adapter);
+    public void setMessage(String message) throws JSONException {
+        JSONObject cmd = new JSONObject(message);
+        switch (cmd.getString("cmd")) {
+            case "CMD_RET_INIT_DATA":
+                JSONArray dev_id = cmd.getJSONArray("dev_id");
+                ListView listView = findViewById(R.id.listview);
+                for (int dev_num = 0; dev_num < dev_id.length(); dev_num++) {
+                    myBean bean = new myBean((String) dev_id.get(dev_num), R.drawable.bind);
+                    myBeanList.add(bean);
+                }
+                adapter = new viewAdapter(MainActivity.this, R.layout.view_adapter, myBeanList);
+                listView.setAdapter(adapter);
+                break;
+            case "CMD_GET_SYS_INIT_DATA":
+
+                break;
+        }
     }
 
     @Override
@@ -91,21 +168,19 @@ public class MainActivity extends AppCompatActivity implements IGetMessageCallBa
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
-            case R.id.manage:
+            case R.id.scan_dev:
+                myBeanList.clear();
+
                 Parcel data=Parcel.obtain();
                 data.writeString("CMD_GET_INIT_DATA");
                 Parcel reply=Parcel.obtain();
                 try {
                     binder.transact(IBinder.LAST_CALL_TRANSACTION, data, reply, 0);
                 } catch (RemoteException e) {
-                    //TODO Auto-generated catch block
                     e.printStackTrace();
                 }
-                //从service里读数据
-                //Log.i("Main<<<<<<<<",reply.readString());
-                //Log.i("Main<<<<<<<<<",reply.readInt()+"");
                 break;
-            case R.id.add:
+            case R.id.check:
                 Intent intent_list=new Intent();
                 intent_list.setClass(MainActivity.this, MyAdapterActivity.class);
                 startActivity(intent_list);
@@ -117,10 +192,5 @@ public class MainActivity extends AppCompatActivity implements IGetMessageCallBa
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void click(View v) {
-        Toast.makeText(MainActivity.this, "listview的内部的按钮被点", Toast.LENGTH_SHORT).show();
     }
 }

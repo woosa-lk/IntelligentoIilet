@@ -203,9 +203,9 @@ public class MyAdapterActivity extends ListActivity{
             //从数据源data中删除数据
             //list.remove(list.get(position));
             //通知适配器更新UI
-            Intent intent_list=new Intent();
-            intent_list.setClass(MyAdapterActivity.this, addDeviceActivity.class);
-            startActivity(intent_list);
+            //Intent intent_list=new Intent();
+            //intent_list.setClass(MyAdapterActivity.this, addDeviceActivity.class);
+            //startActivity(intent_list);
             //adapter.notifyDataSetChanged();
         }
     }

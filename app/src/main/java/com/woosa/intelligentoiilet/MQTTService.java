@@ -23,6 +23,8 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public class MQTTService extends Service {
@@ -196,9 +198,43 @@ public class MQTTService extends Service {
         @Override
         protected boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
             //Activity里获取数据
-            publish(data.readString());
-            //reply.writeString("data");
-            //reply.writeInt(1990);
+            String cmd = data.readString();
+            switch (cmd) {
+                case "CMD_GET_INIT_DATA":
+                    JSONObject obj_init_data = new JSONObject();
+                    try {
+                        obj_init_data.put("cmd", cmd);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    publish(obj_init_data.toString());
+                    break;
+
+                case "CMD_SET_BIND_DEV":
+                    String dev_id = data.readString();
+                    String dev_floor = data.readString();
+                    String dev_sex = data.readString();
+                    JSONObject obj_bind_dev = new JSONObject();
+                    try {
+                        obj_bind_dev.put("cmd", cmd);
+                        obj_bind_dev.put("devid", dev_id);
+                        obj_bind_dev.put("floor", dev_floor);
+                        obj_bind_dev.put("sex", dev_sex);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    publish(obj_bind_dev.toString());
+                    break;
+                case "CMD_GET_SYS_INIT_DATA":
+                    JSONObject obj_sys_ini_data = new JSONObject();
+                    try {
+                        obj_sys_ini_data.put("cmd", cmd);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    publish(obj_sys_ini_data.toString());
+                    break;
+            }
 
             return super.onTransact(code, data, reply, flags);
         }
